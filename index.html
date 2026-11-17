@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BQ Leads | Prospecção Inteligente</title>
+<style>
+:root {
+  --bg:#0b1120;--panel:#151e30;--panel2:#1d2940;
+  --border:#2d3b53;--text:#f2f6ff;--muted:#9cacc5;
+  --blue:#4688ff;--green:#23c78a;--red:#ff6675;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font:14px Arial,Helvetica,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:9px;padding:11px 15px;
+background:var(--blue);color:white;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:var(--panel2);border:1px solid var(--border)}
+button.green{background:#13875e}
+button.danger{background:#723442}
+input,select{width:100%;background:#0e1727;border:1px solid var(--border);
+border-radius:9px;color:white;padding:12px;outline:none}
+input:focus,select:focus{border-color:var(--blue)}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:7px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:24px}h2{font-size:18px}
+small,.muted{color:var(--muted)}
+.hidden{display:none!important}
+.card{background:var(--panel);border:1px solid var(--border);
+border-radius:15px;padding:20px}
+.auth{min-height:100vh;display:grid;place-items:center;padding:20px}
+.auth .card{width:100%;max-width:390px}
+.auth h1{color:var(--blue)}
+.field{margin-bottom:15px}
+.layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--border);padding:25px 15px}
+.logo{font-size:23px;font-weight:800;color:var(--blue);margin-bottom:35px}
+.logo span{color:white}
+.nav{padding:13px;border-radius:9px;margin-bottom:8px;cursor:pointer}
+.nav.active,.nav:hover{background:var(--panel2);color:var(--blue)}
+main{padding:28px;min-width:0;max-width:1500px;width:100%;margin:auto}
+.top{display:flex;align-items:center;justify-content:space-between;
+gap:15px;margin-bottom:25px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:25px}
+.stat strong{display:block;font-size:28px;margin-top:10px}
+.formgrid{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:12px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.toolbar{display:flex;gap:12px;margin-bottom:16px;align-items:center}
+.toolbar input{max-width:350px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left;min-width:790px}
+th,td{padding:13px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:12px}
+td{vertical-align:middle}
+td small{display:block;margin-top:5px}
+td button{padding:8px;font-size:12px}
+.tag{display:inline-block;padding:5px 8px;border-radius:7px;
+background:var(--panel2);font-size:12px}
+.tag.ok{color:var(--green)}
+.tag.warn{color:#ffc46b}
+.status{padding:8px;min-width:125px}
+#notice{margin:15px 0;color:var(--muted);white-space:pre-wrap}
+#notice.error{color:var(--red)}
+#notice.success{color:var(--green)}
+.progress{height:5px;background:var(--panel2);border-radius:9px;
+overflow:hidden;margin-top:12px}
+.progress div{height:100%;width:0;background:var(--blue);
+transition:width .4s}
+.footer{margin-top:25px;color:var(--muted);font-size:12px}
+@media(max-width:950px){
+.layout{grid-template-columns:1fr}
+aside{border-right:0;border-bottom:1px solid var(--border);padding:15px}
+.logo{margin-bottom:12px}
+.nav{display:inline-block;margin:0 5px 0 0}
+main{padding:16px}
+.stats{grid-template-columns:repeat(2,1fr)}
+.formgrid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:550px){
+.formgrid{grid-template-columns:1fr}
+.stats{gap:8px}.card{padding:14px}
+.top{align-items:flex-start;flex-direction:column}
+.toolbar{flex-direction:column;align-items:stretch}
+.toolbar input{max-width:none}
+}
+</style>
+</head>
+<body>
+
+<section id="loginScreen" class="auth">
+  <div class="card">
+    <h1>BQ Leads</h1>
+    <p class="muted">Plataforma de prospecção da BQ Systems</p>
+    <form id="loginForm">
+      <div class="field">
+        <label>E-mail</label>
+        <input id="email" type="email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="password" type="password" required
+          autocomplete="current-password">
+      </div>
+      <button type="submit" style="width:100%">Entrar no painel</button>
+    </form>
+    <p id="loginError" style="color:var(--red);margin-top:15px"></p>
+  </div>
+</section>
+
+<div id="appScreen" class="layout hidden">
+  <aside>
+    <div class="logo">BQ <span>Leads</span></div>
+    <div class="nav active" data-page="search">⌕ Buscar empresas</div>
+    <div class="nav" data-page="saved">▤ Meus leads</div>
+    <div class="nav" data-page="stats">▥ Indicadores</div>
+    <div style="margin-top:30px">
+      <button id="logout" class="secondary">Sair</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1 id="pageTitle">Buscar empresas</h1>
+        <p class="muted">Encontre oportunidades para vender sites.</p>
+      </div>
+      <small id="userEmail"></small>
+    </div>
+
+    <div class="stats">
+      <div class="card stat"><small>Leads salvos</small><strong id="total">0</strong></div>
+      <div class="card stat"><small>Novos</small><strong id="newCount">0</strong></div>
+      <div class="card stat"><small>Interessados</small><strong id="interested">0</strong></div>
+      <div class="card stat"><small>Vendidos</small><strong id="sold">0</strong></div>
+    </div>
+
+    <section id="searchPage">
+      <div class="card">
+        <h2>Nova pesquisa</h2>
+        <div class="formgrid">
+          <div>
+            <label>Cidade</label>
+            <input id="city" value="Mogi Guaçu" maxlength="80">
+          </div>
+          <div>
+            <label>Segmento</label>
+            <select id="segment">
+              <option>Barbearias</option>
+              <option>Oficinas mecânicas</option>
+              <option>Salões de beleza</option>
+              <option>Eletricistas</option>
+              <option>Encanadores</option>
+              <option>Lojas de roupas</option>
+              <option>Clínicas de estética</option>
+              <option>Pet shops</option>
+              <option>Restaurantes</option>
+              <option>Confeitarias</option>
+            </select>
+          </div>
+          <div>
+            <label>Estado</label>
+            <select id="state">
+              <option>SP</option><option>MG</option><option>RJ</option>
+              <option>PR</option><option>SC</option><option>RS</option>
+              <option>ES</option><option>GO</option><option>BA</option>
+              <option>DF</option><option>MS</option><option>MT</option>
+            </select>
+          </div>
+          <div>
+            <label>Limite de resultados</label>
+            <select id="limit">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="searchBtn">⌕ Pesquisar na Apify</button>
+          <button id="refreshBtn" class="secondary">Atualizar pesquisa</button>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <p id="notice">Selecione os filtros e inicie uma pesquisa.</p>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="toolbar">
+          <div style="flex:1">
+            <h2>Resultados encontrados</h2>
+            <small id="resultCount">0 resultados</small>
+          </div>
+          <label style="display:flex;align-items:center;gap:7px;margin:0">
+            <input type="checkbox" id="noSite" checked style="width:auto">
+            Sem site informado
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;margin:0">
+            <input type="checkbox" id="hasPhone" checked style="width:auto">
+            Com telefone
+          </label>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Empresa</th><th>Telefone</th><th>Site</th>
+              <th>Ações</th>
+            </tr></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="savedPage" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <h2 style="flex:1;margin:0">Meus leads</h2>
+          <input id="filterSaved" placeholder="Buscar nome ou telefone">
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Empresa</th><th>Telefone</th>
+              <th>Status</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="savedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="statsPage" class="hidden">
+      <div class="card">
+        <h2>Resumo comercial</h2>
+        <p id="statsText" class="muted"></p>
+        <p>Use a aba Meus leads para atualizar o andamento das negociações.</p>
+      </div>
+    </section>
+
+    <div class="footer">
+      BQ Systems • Prospecção manual • Dados sujeitos à disponibilidade
+      e às condições das fontes.
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import {initializeApp} from
+  "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  getFirestore,collection,doc,getDoc,getDocs,setDoc,
+  updateDoc,deleteDoc,serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import {getFunctions,httpsCallable} from
+  "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyBPkGWEzaLfsNOMoBrFsic0oDe_jdzUVNc",
+  authDomain:"bqleads-1e66d.firebaseapp.com",
+  projectId:"bqleads-1e66d",
+  storageBucket:"bqleads-1e66d.firebasestorage.app",
+  messagingSenderId:"58571397486",
+  appId:"1:58571397486:web:6b3d94da4cee8c90b2497f"
+};
+
+const firebase=initializeApp(firebaseConfig);
+const auth=getAuth(firebase);
+const db=getFirestore(firebase);
+const functions=getFunctions(firebase,"southamerica-east1");
+const startSearch=httpsCallable(functions,"startSearch");
+const checkSearch=httpsCallable(functions,"checkSearch");
+
+const $=id=>document.getElementById(id);
+let user=null;
+let results=[];
+let leads=[];
+let currentRun=null;
+let searching=false;
+
+function message(text,type=""){
+  $("notice").textContent=text;
+  $("notice").className=type;
+}
+function escapeHTML(value){
+  return String(value??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#39;"
+  })[c]);
+}
+function digits(value){
+  return String(value??"").replace(/\D/g,"");
+}
+function whatsapp(value){
+  let n=digits(value);
+  if(n.length===10||n.length===11)n="55"+n;
+  if(!/^55\d{10,11}$/.test(n))return null;
+  return "https://wa.me/"+n;
+}
+function idFor(lead){
+  return String(lead.placeId||lead.id||"").slice(0,180);
+}
+function leadCollection(){
+  return collection(db,"users",user.uid,"leads");
+}
+function leadDoc(id){
+  return doc(db,"users",user.uid,"leads",id);
+}
+function statusOptions(current){
+  return ["novo","abordado","interessado","negociando","vendido","descartado"]
+    .map(s=>`<option value="${s}" ${s===current?"selected":""}>${s}</option>`)
+    .join("");
+}
+function renderStats(){
+  const count=s=>leads.filter(l=>l.status===s).length;
+  $("total").textContent=leads.length;
+  $("newCount").textContent=count("novo");
+  $("interested").textContent=count("interessado");
+  $("sold").textContent=count("vendido");
+  $("statsText").textContent=
+    `Você possui ${leads.length} leads salvos, `+
+    `${count("abordado")} abordados, `+
+    `${count("interessado")} interessados, `+
+    `${count("negociando")} em negociação e `+
+    `${count("vendido")} vendidos.`;
+}
+async function loadLeads(){
+  const snap=await getDocs(leadCollection());
+  leads=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderStats();
+  renderSaved();
+  renderResults();
+}
+function renderResults(){
+  const visible=results.filter(r=>
+    (!$("noSite").checked||!r.website)&&
+    (!$("hasPhone").checked||r.phone)
+  );
+  $("resultCount").textContent=visible.length+" resultados exibidos";
+  $("resultsBody").innerHTML=visible.length?"":`
+    <tr><td colspan="4" class="muted">
+      Nenhuma empresa encontrada com esses filtros.
+    </td></tr>`;
+  for(const r of visible){
+    const id=idFor(r);
+    const saved=leads.some(l=>l.id===id);
+    const wa=whatsapp(r.phone);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><strong>${escapeHTML(r.name)}</strong>
+        <small>${escapeHTML(r.address)}</small></td>
+      <td>${escapeHTML(r.phone||"Não informado")}</td>
+      <td><span class="tag ${r.website?"ok":"warn"}">
+        ${r.website?"Informado":"Não informado"}</span></td>
+      <td>
+        <button class="secondary" data-action="save"
+          data-id="${escapeHTML(id)}" ${saved?"disabled":""}>
+          ${saved?"Salvo":"Salvar"}
+        </button>
+        ${wa?`<button class="green" data-action="wa"
+          data-id="${escapeHTML(id)}">WhatsApp</button>`:""}
+      </td>`;
+    $("resultsBody").appendChild(tr);
+  }
+}
+function renderSaved(){
+  const term=$("filterSaved").value.toLowerCase();
+  const filtered=leads.filter(l=>
+    (l.name+" "+(l.phone||"")).toLowerCase().includes(term)
+  );
+  $("savedBody").innerHTML=filtered.length?"":`
+    <tr><td colspan="4" class="muted">Nenhum lead salvo.</td></tr>`;
+  for(const l of filtered){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><strong>${escapeHTML(l.name)}</strong>
+        <small>${escapeHTML(l.address||"")}</small></td>
+      <td>${escapeHTML(l.phone||"Não informado")}</td>
+      <td><select class="status" data-id="${escapeHTML(l.id)}">
+        ${statusOptions(l.status)}
+      </select></td>
+      <td>
+        ${whatsapp(l.phone)?`<button class="green"
+          data-action="wa" data-id="${escapeHTML(l.id)}">
+          WhatsApp</button>`:""}
+        <button class="danger" data-action="delete"
+          data-id="${escapeHTML(l.id)}">Excluir</button>
+      </td>`;
+    $("savedBody").appendChild(tr);
+  }
+}
+async function saveLead(id){
+  const r=results.find(x=>idFor(x)===id);
+  if(!r||leads.some(l=>l.id===id))return;
+  await setDoc(leadDoc(id),{
+    name:r.name,
+    phone:r.phone||"",
+    address:r.address||"",
+    website:r.website||"",
+    status:"novo",
+    createdAt:serverTimestamp()
+  });
+  await loadLeads();
+}
+async function updateStatus(id,status){
+  if(!["novo","abordado","interessado","negociando",
+    "vendido","descartado"].includes(status))return;
+  await updateDoc(leadDoc(id),{status});
+  await loadLeads();
+}
+async function removeLead(id){
+  if(!confirm("Excluir este lead do acompanhamento?"))return;
+  await deleteDoc(leadDoc(id));
+  await loadLeads();
+}
+function openWhatsApp(id){
+  const lead=results.find(x=>idFor(x)===id)||
+    leads.find(x=>x.id===id);
+  if(!lead)return;
+  const url=whatsapp(lead.phone);
+  if(!url){alert("Telefone não compatível com WhatsApp.");return;}
+  window.open(url,"_blank","noopener,noreferrer");
+}
+async function handleAction(event){
+  const btn=event.target.closest("[data-action]");
+  if(!btn)return;
+  const id=btn.dataset.id;
+  try{
+    if(btn.dataset.action==="save")await saveLead(id);
+    if(btn.dataset.action==="delete")await removeLead(id);
+    if(btn.dataset.action==="wa")openWhatsApp(id);
+  }catch(e){alert("Não foi possível concluir: "+e.message);}
+}
+$("resultsBody").addEventListener("click",handleAction);
+$("savedBody").addEventListener("click",handleAction);
+$("savedBody").addEventListener("change",async e=>{
+  if(e.target.matches("select.status")){
+    try{await updateStatus(e.target.dataset.id,e.target.value);}
+    catch(err){alert(err.message);}
+  }
+});
+$("filterSaved").addEventListener("input",renderSaved);
+$("noSite").addEventListener("change",renderResults);
+$("hasPhone").addEventListener("change",renderResults);
+
+function setBusy(value){
+  searching=value;
+  $("searchBtn").disabled=value;
+  $("refreshBtn").disabled=value;
+  $("progressBar").style.width=value?"45%":"0%";
+}
+async function pollRun(){
+  if(!currentRun)return;
+  const data=(await checkSearch({runId:currentRun})).data;
+  if(data.status==="SUCCEEDED"){
+    results=data.items||[];
+    currentRun=null;
+    sessionStorage.removeItem("bqRun");
+    $("progressBar").style.width="100%";
+    message("Pesquisa concluída: "+results.length+" empresas recebidas.","success");
+    renderResults();
+    setBusy(false);
+    return;
+  }
+  if(["FAILED","ABORTED","TIMED-OUT"].includes(data.status)){
+    currentRun=null;
+    sessionStorage.removeItem("bqRun");
+    throw Error("A execução terminou com status: "+data.status);
+  }
+  message("Pesquisa em andamento na Apify. Status: "+data.status+
+    ". Clique em Atualizar pesquisa após alguns instantes.");
+  setBusy(false);
+}
+$("searchBtn").addEventListener("click",async()=>{
+  if(searching)return;
+  const city=$("city").value.trim();
+  if(city.length<2){message("Informe uma cidade válida.","error");return;}
+  setBusy(true);
+  message("Iniciando pesquisa...");
+  try{
+    const data=(await startSearch({
+      city,state:$("state").value,
+      segment:$("segment").value,
+      limit:Number($("limit").value)
+    })).data;
+    currentRun=data.runId;
+    sessionStorage.setItem("bqRun",currentRun);
+    message("Pesquisa iniciada. Clique em Atualizar pesquisa em alguns instantes.");
+  }catch(e){message("Erro: "+e.message,"error");}
+  finally{setBusy(false);}
+});
+$("refreshBtn").addEventListener("click",async()=>{
+  if(!currentRun){
+    message("Nenhuma pesquisa pendente nesta sessão.");return;
+  }
+  setBusy(true);
+  try{await pollRun();}
+  catch(e){message("Erro: "+e.message,"error");setBusy(false);}
+});
+function showPage(page){
+  for(const name of ["search","saved","stats"]){
+    $(name+"Page").classList.toggle("hidden",name!==page);
+  }
+  document.querySelectorAll(".nav").forEach(n=>
+    n.classList.toggle("active",n.dataset.page===page)
+  );
+  $("pageTitle").textContent={
+    search:"Buscar empresas",saved:"Meus leads",stats:"Indicadores"
+  }[page];
+}
+document.querySelectorAll(".nav").forEach(n=>
+  n.addEventListener("click",()=>showPage(n.dataset.page))
+);
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  $("loginError").textContent="";
+  try{
+    await signInWithEmailAndPassword(auth,
+      $("email").value,$("password").value);
+  }catch(err){$("loginError").textContent="Login inválido ou não autorizado.";}
+});
+$("logout").addEventListener("click",()=>signOut(auth));
+onAuthStateChanged(auth,async u=>{
+  user=null;
+  $("appScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+  if(!u)return;
+  try{
+    const admin=await getDoc(doc(db,"admins",u.uid));
+    if(!admin.exists()){
+      $("loginError").textContent="Usuário sem permissão de administrador.";
+      await signOut(auth);
+      return;
+    }
+    user=u;
+    $("userEmail").textContent=u.email;
+    $("loginScreen").classList.add("hidden");
+    $("appScreen").classList.remove("hidden");
+    currentRun=sessionStorage.getItem("bqRun");
+    if(currentRun)message("Existe uma pesquisa pendente. Clique em Atualizar pesquisa.");
+    await loadLeads();
+  }catch(e){
+    $("loginError").textContent="Erro ao carregar permissões: "+e.message;
+  }
+});
+</script>
+</body>
+</html>
